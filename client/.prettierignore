@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 # macOS
 .DS_Store
+
+# Node.js
+package-lock.json
