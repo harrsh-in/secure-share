@@ -22,6 +22,10 @@ export default function Home() {
         setIsCreating(false);
     };
 
+    const handleSocketClientJoined = (data: { clientId: string }) => {
+        console.log('Client joined:', data.clientId);
+    };
+
     const handleSocketError = (error: unknown) => {
         console.error('Socket error:', error);
         setIsCreating(false);
@@ -35,11 +39,14 @@ export default function Home() {
 
         socket.on('session-created', handleSocketSessionCreated);
 
+        socket.on('client-joined', handleSocketClientJoined);
+
         socket.on('error', handleSocketError);
 
         return () => {
             socket.off('connect', handleSocketConnect);
             socket.off('session-created', handleSocketSessionCreated);
+            socket.off('client-joined', handleSocketClientJoined);
             socket.off('error', handleSocketError);
         };
     }, []);
