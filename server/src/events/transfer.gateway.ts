@@ -88,9 +88,9 @@ export class TransferGateway
         // Set expiration for peers list
         await this.redisService.expire(peersKey, 24 * 60 * 60);
 
-        // Emit client ID to the room creator
-        this.server.to(creator).emit('client-joined', {
-            clientId: client.id,
+        // Emit peer ID to the room creator
+        this.server.to(creator).emit('peer-joined', {
+            peerId: client.id,
             roomId,
         });
 

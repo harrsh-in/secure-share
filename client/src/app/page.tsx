@@ -22,8 +22,8 @@ export default function Home() {
         setIsCreating(false);
     };
 
-    const handleSocketClientJoined = (data: { clientId: string }) => {
-        console.log('Client joined:', data.clientId);
+    const handleSocketPeerJoined = (data: { peerId: string }) => {
+        console.log('Peer joined:', data.peerId);
     };
 
     const handleSocketError = (error: unknown) => {
@@ -39,14 +39,14 @@ export default function Home() {
 
         socket.on('session-created', handleSocketSessionCreated);
 
-        socket.on('client-joined', handleSocketClientJoined);
+        socket.on('peer-joined', handleSocketPeerJoined);
 
         socket.on('error', handleSocketError);
 
         return () => {
             socket.off('connect', handleSocketConnect);
             socket.off('session-created', handleSocketSessionCreated);
-            socket.off('client-joined', handleSocketClientJoined);
+            socket.off('peer-joined', handleSocketPeerJoined);
             socket.off('error', handleSocketError);
         };
     }, []);
