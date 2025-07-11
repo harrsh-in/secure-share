@@ -1,14 +1,40 @@
 'use client';
 
 import { io, Socket } from 'socket.io-client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function Home() {
     const [roomId, setRoomId] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [peers, setPeers] = useState<string[]>([]);
+
     const socketRef = useRef<Socket | null>(null);
 
-    const handleCreateSession = () => {
+    const handleSocketConnect = () => {
+        console.log('Connected to server');
+    };
+
+    const handleSocketSessionCreated = (data: { roomId: string }) => {
+        setRoomId(data.roomId);
+        setIsCreating(false);
+    };
+
+    const handleSocketPeerJoined = (data: { peerId: string }) => {
+        console.log('Peer joined:', data.peerId);
+        setPeers((prev) => [...prev, data.peerId]);
+    };
+
+    const handleSocketPeerLeft = (data: { peerId: string }) => {
+        console.log('Peer left:', data.peerId);
+        setPeers((prev) => prev.filter((peer) => peer !== data.peerId));
+    };
+
+    const handleSocketError = (error: unknown) => {
+        console.error('Socket error:', error);
+        setIsCreating(false);
+    };
+
+    const handleCreateSession = useCallback(() => {
         setIsCreating(true);
 
         // Create socket connection
@@ -23,29 +49,7 @@ export default function Home() {
 
         // Emit create-session after setting up listeners
         socket.emit('create-session');
-    };
-
-    const handleSocketConnect = () => {
-        console.log('Connected to server');
-    };
-
-    const handleSocketSessionCreated = (data: { roomId: string }) => {
-        setRoomId(data.roomId);
-        setIsCreating(false);
-    };
-
-    const handleSocketPeerJoined = (data: { peerId: string }) => {
-        console.log('Peer joined:', data.peerId);
-    };
-
-    const handleSocketPeerLeft = (data: { peerId: string }) => {
-        console.log('Peer left:', data.peerId);
-    };
-
-    const handleSocketError = (error: unknown) => {
-        console.error('Socket error:', error);
-        setIsCreating(false);
-    };
+    }, []);
 
     useEffect(() => {
         // Cleanup function to disconnect socket when component unmounts
@@ -76,6 +80,15 @@ export default function Home() {
                     </p>
                 </div>
             )}
+
+            <div className="mt-4">
+                <h2 className="text-lg font-bold">Peers</h2>
+                <ul>
+                    {peers.map((peer) => (
+                        <li key={peer}>{peer}</li>
+                    ))}
+                </ul>
+            </div>
         </div>
     );
 }

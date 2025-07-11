@@ -35,31 +35,35 @@ export default function Room() {
         console.error('Socket error:', error);
     };
 
-    useEffect(() => {
+    const handleJoinSession = useCallback(() => {
+        // Create socket connection
         const socket = io(`${process.env.NEXT_PUBLIC_API_URL}/transfer`);
         socketRef.current = socket;
 
-        socket.on('connect', () => {
-            handleSocketConnect();
-            socket.emit('join-session', roomId);
-        });
-
+        socket.on('connect', handleSocketConnect);
         socket.on('session-joined-success', handleSocketSessionJoined);
-
         socket.on('session-ended', handleSocketSessionEnded);
-
         socket.on('session-not-found', handleSessionNotFound);
-
         socket.on('error', handleSocketError);
 
-        return () => {
-            socket.off('connect', handleSocketConnect);
-            socket.off('session-joined-success', handleSocketSessionJoined);
-            socket.off('session-ended', handleSocketSessionEnded);
-            socket.off('session-not-found', handleSessionNotFound);
-            socket.off('error', handleSocketError);
-        };
+        // Emit join-session after setting up listeners
+        socket.emit('join-session', roomId);
     }, [roomId, handleSessionNotFound, handleSocketSessionEnded]);
 
-    return <div>Room {roomId}</div>;
+    useEffect(() => {
+        // Cleanup function to disconnect socket when component unmounts
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+                socketRef.current = null;
+            }
+        };
+    }, []);
+
+    return (
+        <div>
+            <h1>Room {roomId}</h1>
+            <button onClick={handleJoinSession}>Join Session</button>
+        </div>
+    );
 }
