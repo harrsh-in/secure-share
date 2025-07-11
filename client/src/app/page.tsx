@@ -10,7 +10,19 @@ export default function Home() {
 
     const handleCreateSession = () => {
         setIsCreating(true);
-        socketRef.current?.emit('create-session');
+
+        // Create socket connection
+        const socket = io(`${process.env.NEXT_PUBLIC_API_URL}/transfer`);
+        socketRef.current = socket;
+
+        socket.on('connect', handleSocketConnect);
+        socket.on('session-created', handleSocketSessionCreated);
+        socket.on('peer-joined', handleSocketPeerJoined);
+        socket.on('peer-left', handleSocketPeerLeft);
+        socket.on('error', handleSocketError);
+
+        // Emit create-session after setting up listeners
+        socket.emit('create-session');
     };
 
     const handleSocketConnect = () => {
@@ -36,25 +48,12 @@ export default function Home() {
     };
 
     useEffect(() => {
-        const socket = io(`${process.env.NEXT_PUBLIC_API_URL}/transfer`);
-        socketRef.current = socket;
-
-        socket.on('connect', handleSocketConnect);
-
-        socket.on('session-created', handleSocketSessionCreated);
-
-        socket.on('peer-joined', handleSocketPeerJoined);
-
-        socket.on('peer-left', handleSocketPeerLeft);
-
-        socket.on('error', handleSocketError);
-
+        // Cleanup function to disconnect socket when component unmounts
         return () => {
-            socket.off('connect', handleSocketConnect);
-            socket.off('session-created', handleSocketSessionCreated);
-            socket.off('peer-joined', handleSocketPeerJoined);
-            socket.off('peer-left', handleSocketPeerLeft);
-            socket.off('error', handleSocketError);
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+                socketRef.current = null;
+            }
         };
     }, []);
 
