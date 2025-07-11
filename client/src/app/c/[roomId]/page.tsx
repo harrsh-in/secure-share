@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 export default function Room() {
@@ -18,15 +18,18 @@ export default function Room() {
         console.log('Session joined:', data.roomId);
     };
 
-    const handleSessionNotFound = (data: { roomId: string }) => {
-        console.log('Session not found:', data.roomId);
-        router.push('/');
-    };
+    const handleSessionNotFound = useCallback(
+        (data: { roomId: string }) => {
+            console.log('Session not found:', data.roomId);
+            router.push('/');
+        },
+        [router],
+    );
 
-    const handleSocketSessionEnded = () => {
+    const handleSocketSessionEnded = useCallback(() => {
         console.log('Session ended');
         router.push('/');
-    };
+    }, [router]);
 
     const handleSocketError = (error: unknown) => {
         console.error('Socket error:', error);
@@ -56,7 +59,7 @@ export default function Room() {
             socket.off('session-not-found', handleSessionNotFound);
             socket.off('error', handleSocketError);
         };
-    }, [roomId]);
+    }, [roomId, handleSessionNotFound, handleSocketSessionEnded]);
 
     return <div>Room {roomId}</div>;
 }
