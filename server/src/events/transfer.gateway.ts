@@ -47,8 +47,15 @@ export class TransferGateway
             roomId,
         });
 
-        // Store the room ID in Redis
-        await this.redisService.set(roomId, client.id);
+        // Store room creator in Redis using hash structure
+        const roomKey = `room:${roomId}`;
+        await this.redisService.hset(roomKey, {
+            creator: client.id,
+            createdAt: new Date().toISOString(),
+        });
+
+        // Set expiration for the room (24 hours)
+        await this.redisService.expire(roomKey, 24 * 60 * 60);
 
         this.logger.log(
             `Client ${client.id} created session with room ID: ${roomId}`,
@@ -60,9 +67,11 @@ export class TransferGateway
         @ConnectedSocket() client: Socket,
         @MessageBody() roomId: string,
     ): Promise<void> {
-        // Check if the room exists
-        const roomOwner = await this.redisService.get(roomId);
-        if (!roomOwner) {
+        const roomKey = `room:${roomId}`;
+
+        // Check if the room exists by looking for the creator
+        const creator = await this.redisService.hget(roomKey, 'creator');
+        if (!creator) {
             client.emit('session-not-found', {
                 roomId,
             });
@@ -72,18 +81,27 @@ export class TransferGateway
         // Join the client to the room
         await client.join(roomId);
 
-        // Emit client ID to the room owner
-        this.server.to(roomOwner).emit('client-joined', {
+        // Add client to peers list
+        const peersKey = `${roomKey}:peers`;
+        await this.redisService.sadd(peersKey, client.id);
+
+        // Set expiration for peers list
+        await this.redisService.expire(peersKey, 24 * 60 * 60);
+
+        // Emit client ID to the room creator
+        this.server.to(creator).emit('client-joined', {
             clientId: client.id,
+            roomId,
         });
 
         // Emit success message to the client
         client.emit('session-joined-success', {
             roomId,
+            creator,
         });
 
         this.logger.log(
-            `Client ${client.id} joined session with room ID: ${roomId}`,
+            `Client ${client.id} joined session with room ID: ${roomId} (creator: ${creator})`,
         );
     }
 }

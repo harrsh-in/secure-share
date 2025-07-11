@@ -17,6 +17,10 @@ export default function Room() {
         console.log('Session joined:', data.roomId);
     };
 
+    const handleSessionNotFound = (data: { roomId: string }) => {
+        console.log('Session not found:', data.roomId);
+    };
+
     const handleSocketError = (error: unknown) => {
         console.error('Socket error:', error);
     };
@@ -32,11 +36,14 @@ export default function Room() {
 
         socket.on('session-joined-success', handleSocketSessionJoined);
 
+        socket.on('session-not-found', handleSessionNotFound);
+
         socket.on('error', handleSocketError);
 
         return () => {
             socket.off('connect', handleSocketConnect);
             socket.off('session-joined-success', handleSocketSessionJoined);
+            socket.off('session-not-found', handleSessionNotFound);
             socket.off('error', handleSocketError);
         };
     }, [roomId]);

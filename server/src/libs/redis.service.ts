@@ -63,6 +63,79 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
+    async hset(
+        key: string,
+        field: string | object,
+        value?: string,
+    ): Promise<number> {
+        try {
+            if (typeof field === 'object') {
+                return await this.client.hset(key, field);
+            }
+            return await this.client.hset(key, field, value!);
+        } catch (error) {
+            this.logger.error(`❌ Failed to hset key: ${key}`, error);
+            throw error;
+        }
+    }
+
+    async hget(key: string, field: string): Promise<string | null> {
+        try {
+            return await this.client.hget(key, field);
+        } catch (error) {
+            this.logger.error(
+                `❌ Failed to hget key: ${key}, field: ${field}`,
+                error,
+            );
+            throw error;
+        }
+    }
+
+    async hmget(key: string, fields: string[]): Promise<(string | null)[]> {
+        try {
+            return await this.client.hmget(key, ...fields);
+        } catch (error) {
+            this.logger.error(`❌ Failed to hmget key: ${key}`, error);
+            throw error;
+        }
+    }
+
+    async sadd(key: string, member: string): Promise<number> {
+        try {
+            return await this.client.sadd(key, member);
+        } catch (error) {
+            this.logger.error(`❌ Failed to sadd key: ${key}`, error);
+            throw error;
+        }
+    }
+
+    async smembers(key: string): Promise<string[]> {
+        try {
+            return await this.client.smembers(key);
+        } catch (error) {
+            this.logger.error(`❌ Failed to smembers key: ${key}`, error);
+            throw error;
+        }
+    }
+
+    async srem(key: string, member: string): Promise<number> {
+        try {
+            return await this.client.srem(key, member);
+        } catch (error) {
+            this.logger.error(`❌ Failed to srem key: ${key}`, error);
+            throw error;
+        }
+    }
+
+    async expire(key: string, seconds: number): Promise<number> {
+        try {
+            return await this.client.expire(key, seconds);
+        } catch (error) {
+            this.logger.error(`❌ Failed to expire key: ${key}`, error);
+            throw error;
+        }
+    }
+
     async disconnect(): Promise<void> {
         try {
             await this.client.quit();
