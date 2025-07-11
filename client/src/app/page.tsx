@@ -26,6 +26,10 @@ export default function Home() {
         console.log('Peer joined:', data.peerId);
     };
 
+    const handleSocketPeerLeft = (data: { peerId: string }) => {
+        console.log('Peer left:', data.peerId);
+    };
+
     const handleSocketError = (error: unknown) => {
         console.error('Socket error:', error);
         setIsCreating(false);
@@ -41,12 +45,15 @@ export default function Home() {
 
         socket.on('peer-joined', handleSocketPeerJoined);
 
+        socket.on('peer-left', handleSocketPeerLeft);
+
         socket.on('error', handleSocketError);
 
         return () => {
             socket.off('connect', handleSocketConnect);
             socket.off('session-created', handleSocketSessionCreated);
             socket.off('peer-joined', handleSocketPeerJoined);
+            socket.off('peer-left', handleSocketPeerLeft);
             socket.off('error', handleSocketError);
         };
     }, []);

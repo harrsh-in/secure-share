@@ -1,11 +1,12 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 export default function Room() {
     const { roomId } = useParams();
+    const router = useRouter();
 
     const socketRef = useRef<Socket | null>(null);
 
@@ -19,6 +20,12 @@ export default function Room() {
 
     const handleSessionNotFound = (data: { roomId: string }) => {
         console.log('Session not found:', data.roomId);
+        router.push('/');
+    };
+
+    const handleSocketSessionEnded = () => {
+        console.log('Session ended');
+        router.push('/');
     };
 
     const handleSocketError = (error: unknown) => {
@@ -36,6 +43,8 @@ export default function Room() {
 
         socket.on('session-joined-success', handleSocketSessionJoined);
 
+        socket.on('session-ended', handleSocketSessionEnded);
+
         socket.on('session-not-found', handleSessionNotFound);
 
         socket.on('error', handleSocketError);
@@ -43,6 +52,7 @@ export default function Room() {
         return () => {
             socket.off('connect', handleSocketConnect);
             socket.off('session-joined-success', handleSocketSessionJoined);
+            socket.off('session-ended', handleSocketSessionEnded);
             socket.off('session-not-found', handleSessionNotFound);
             socket.off('error', handleSocketError);
         };
