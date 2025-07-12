@@ -52,11 +52,6 @@ export default function Home() {
             setIsCreating(false);
         };
 
-        const handleConnectError = (error: unknown) => {
-            console.error('❌ Connection error:', error);
-            setIsCreating(false);
-        };
-
         // Attach event listeners
         socket.on('connect', handleConnect);
         socket.on('disconnect', handleDisconnect);
@@ -64,7 +59,6 @@ export default function Home() {
         socket.on('peer-joined', handlePeerJoined);
         socket.on('peer-left', handlePeerLeft);
         socket.on('error', handleError);
-        socket.on('connect_error', handleConnectError);
 
         // Cleanup function
         return () => {
