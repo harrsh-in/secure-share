@@ -62,7 +62,7 @@ export class TransferGateway
             );
 
             if (removedFromActive > 0) {
-                console.log(
+                this.logger.log(
                     `Peer ${client.id} disconnected from session ${roomId}`,
                 );
 
